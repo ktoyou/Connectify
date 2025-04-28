@@ -1,0 +1,41 @@
+﻿using Connectify.Db.Model;
+using GachiHubBackend.Repositories;
+using Microsoft.AspNetCore.Mvc;
+
+namespace GachiHubBackend.Controllers;
+
+[Route("Api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly UserRepository _userRepository;
+    
+    public UsersController(UserRepository usersRepository)
+    {
+        _userRepository = usersRepository;
+    }
+
+    [HttpGet(nameof(Register))]
+    public async Task<IActionResult> Register(string login, string password)
+    {
+        var user = await _userRepository.GetUserByLoginAsync(login);
+        if (user != null)
+        {
+            return BadRequest(new
+            {
+                message = "User already exists"
+            });
+        }
+
+        await _userRepository.AddAsync(new User()
+        {
+            Login = login,
+            Password = password,
+            CreatedAt = DateTime.Now
+        });
+
+        return Ok(new
+        {
+            message = "User created"
+        });
+    }
+}
