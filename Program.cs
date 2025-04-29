@@ -2,6 +2,7 @@ using Connectify.Db;
 using GachiHubBackend.Extensions;
 using GachiHubBackend.Hubs;
 using GachiHubBackend.Repositories;
+using GachiHubBackend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,8 @@ builder.Services.AddCors(opts =>
 var db = new DbConnectifyContext(builder.Configuration);
 db.Database.EnsureDeleted();
 db.Database.EnsureCreated();
+
+builder.Services.AddSingleton<AvatarService>();
 
 builder.Services.AddDbContext<DbConnectifyContext>();
 builder.Services.AddRepositories();

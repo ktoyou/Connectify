@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using GachiHubBackend.Repositories;
+using GachiHubBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +12,12 @@ public class AvatarController : ControllerBase
 {
     private readonly UserRepository _userRepository;
     
-    public AvatarController(UserRepository userRepository)
+    private readonly AvatarService _avatarService;
+    
+    public AvatarController(UserRepository userRepository, AvatarService avatarService)
     {
         _userRepository = userRepository;
+        _avatarService = avatarService;
     }
 
     [HttpPost(nameof(SetAvatar))]
@@ -27,16 +31,7 @@ public class AvatarController : ControllerBase
             });
         }
         
-        var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "avatars");
-        Directory.CreateDirectory(uploadFolder);
-
-        var fileName = Guid.NewGuid() + Path.GetExtension(avatar.FileName);
-        var filePath = Path.Combine(uploadFolder, fileName);
-
-        await using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await avatar.CopyToAsync(stream);
-        }
+        var fileName = await _avatarService.UploadAvatarAsync(avatar);
 
         var login = User.Claims.FirstOrDefault(u => u.Type == ClaimTypes.Name);
         if (login == null)
