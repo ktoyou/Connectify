@@ -45,6 +45,7 @@ builder.Services.AddScoped<MessagesRepository>();
 
 var app = builder.Build();
 
+app.UseCors();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
