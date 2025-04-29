@@ -42,6 +42,7 @@ builder.Services.AddScoped<MessagesRepository>();
 
 var app = builder.Build();
 
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

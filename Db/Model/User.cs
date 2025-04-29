@@ -20,4 +20,6 @@ public class User : BaseModel
 
     [JsonIgnore]
     public string? ConnectionId { get; set; } = string.Empty;
+
+    public string? AvatarUrl { get; set; } = string.Empty;
 }
