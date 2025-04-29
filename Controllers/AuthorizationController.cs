@@ -31,7 +31,8 @@ public class AuthorizationController : ControllerBase
         
         return Ok(new
         {
-            token = GetToken(login)
+            token = GetToken(login),
+            user = user
         });
     }
 
