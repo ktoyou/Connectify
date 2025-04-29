@@ -1,10 +1,12 @@
 ﻿using Connectify.Db.Model;
 using GachiHubBackend.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GachiHubBackend.Controllers;
 
 [Route("Api/[controller]")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly UserRepository _userRepository;
