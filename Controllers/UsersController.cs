@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace GachiHubBackend.Controllers;
 
 [Route("Api/[controller]")]
-[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly UserRepository _userRepository;
@@ -17,6 +16,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet(nameof(Register))]
+    
     public async Task<IActionResult> Register(string login, string password)
     {
         var user = await _userRepository.GetUserByLoginAsync(login);
@@ -42,6 +42,7 @@ public class UsersController : ControllerBase
     }
     
     [HttpGet(nameof(GetProfile))]
+    [Authorize]
     public async Task<IActionResult> GetProfile()
     {
         if (User.Identity == null || User.Identity?.Name == null)
