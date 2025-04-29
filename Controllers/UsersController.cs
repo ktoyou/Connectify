@@ -38,4 +38,22 @@ public class UsersController : ControllerBase
             message = "User created"
         });
     }
+
+    public async Task<IActionResult> GetProfile()
+    {
+        if (User.Identity == null || User.Identity?.Name == null)
+        {
+            return BadRequest(new
+            {
+                message = "Identity claim is missing or name is required"
+            });
+        }
+        
+        var user = await _userRepository.GetUserByLoginAsync(User.Identity.Name);
+
+        return Ok(new
+        {
+            user
+        });
+    }
 }
