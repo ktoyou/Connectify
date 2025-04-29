@@ -40,7 +40,8 @@ public class UsersController : ControllerBase
             message = "User created"
         });
     }
-
+    
+    [HttpGet(nameof(GetProfile))]
     public async Task<IActionResult> GetProfile()
     {
         if (User.Identity == null || User.Identity?.Name == null)
