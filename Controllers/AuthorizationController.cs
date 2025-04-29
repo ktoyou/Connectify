@@ -26,7 +26,7 @@ public class AuthorizationController : ControllerBase
         var user = await _userRepository.GetUserByLoginAndPasswordAsync(login, password);
         if (user == null)
         {
-            return BadRequest(new { message = "Login or password is incorrect" });
+            return NotFound(new { message = "Login or password is incorrect" });
         }
         
         return Ok(new
