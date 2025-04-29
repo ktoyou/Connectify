@@ -32,20 +32,42 @@ public class RoomHub : Hub
 
     public async Task SendOffer(object offer)
     {
+        var currentUser = await _roomHubContextService.GetCurrentUserAsync();
         var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ReceiveOffer.ToString(), offer);
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ReceiveOffer.ToString(), new
+        {
+            offer,
+            fromUserId = currentUser!.Id,
+        });
     }
 
-    public async Task SendAnswer(object answer)
+    public async Task SendAnswer(object answer, int targetUserId)
     {
-        var user = await _roomHubContextService.GetCurrentUserAsync();
-        await Clients.Clients(user!.ConnectionId!).SendAsync(RoomHubEvent.ReceiveAnswer.ToString(), answer);
+        var currentUser = await _roomHubContextService.GetCurrentUserAsync();
+        var room = await _roomRepository.GetByIdAsync(currentUser!.Room!.Id);
+        var targetUser = room!.Users.FirstOrDefault(u => u.Id == targetUserId);
+
+        if (targetUser!.ConnectionId != null)
+        {
+            await Clients.Clients(targetUser.ConnectionId)
+                .SendAsync(RoomHubEvent.ReceiveAnswer.ToString(), new
+                {
+                    answer,
+                    fromUserId = currentUser!.Id,
+                });    
+        }
     }
 
-    public async Task ReceiveCandidate(object candidate)
+    public async Task SendCandidate(object candidate)
     {
+        var currentUser = await _roomHubContextService.GetCurrentUserAsync();
         var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ReceiveCandidate.ToString(), candidate);
+        await Clients.Clients(connectionIds!)
+            .SendAsync(RoomHubEvent.ReceiveCandidate.ToString(), new
+            {
+                candidate,
+                fromUserId = currentUser!.Id,
+            });
     }
     
     public async Task SendMessage(string content)
