@@ -8,5 +8,6 @@ public enum RoomHubEvent
     ReceiveMessage,
     JoinedRoom,
     LeavedRoom,
-    LeftedRoom
+    LeftedRoom,
+    CreatedRoom
 }
