@@ -10,5 +10,6 @@ public enum RoomHubEvent
     LeavedRoom,
     LeftedRoom,
     CreatedRoom,
-    JoinedToOtherRoom
+    JoinedToOtherRoom,
+    LeavedFromOtherRoom
 }

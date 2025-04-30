@@ -124,13 +124,14 @@ public class RoomHub : Hub
             throw new HubException("User not found");
         }
         
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        var connectionIds = (await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync()).ToList();
 
         user.Room = null;
         user.RoomId = null;
         await _userRepository.UpdateAsync(user);
         
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeavedRoom.ToString(), currentUser!.Login);
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeavedRoom.ToString(), currentUser, room);
+        await Clients.AllExcept(connectionIds!).SendAsync(RoomHubEvent.LeavedFromOtherRoom.ToString(), room);
     }
     
     public override async Task OnDisconnectedAsync(Exception? exception)
