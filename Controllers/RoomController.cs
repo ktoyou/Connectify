@@ -1,8 +1,11 @@
 ﻿using Connectify.Db.Model;
+using GachiHubBackend.Hubs;
+using GachiHubBackend.Hubs.Enums;
 using GachiHubBackend.Repositories;
 using GachiHubBackend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace GachiHubBackend.Controllers;
 
@@ -14,13 +17,14 @@ public class RoomController : ControllerBase
     
     private readonly UserRepository _userRepository;
     
-    private readonly IRepository<Message> _messageRepository;
+    private readonly IHubContext<RoomHub> _roomHubContext;
     
-    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IRepository<Message> messagesRepository)
+    
+    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IHubContext<RoomHub> roomHubContext)
     {
         _roomRepository = roomRepository;
         _userRepository = userRepository;
-        _messageRepository = messagesRepository;
+        _roomHubContext = roomHubContext;
     }
 
     [HttpGet(nameof(GetRooms))]
@@ -52,11 +56,18 @@ public class RoomController : ControllerBase
         {
             return Unauthorized();
         }
-        
-        await _roomRepository.AddAsync(new Room()
+
+        var newRoom = new Room()
         {
             Title = title,
             Owner = user,
+        };
+        
+        await _roomRepository.AddAsync(newRoom);
+
+        await _roomHubContext.Clients.All.SendAsync(RoomHubEvent.CreatedRoom.ToString(), new
+        {
+            newRoom
         });
 
         return Ok(new
