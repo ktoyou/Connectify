@@ -14,7 +14,7 @@ public class UserValidation : AbstractValidator<User>
 
         RuleFor(u => u.Password)
             .NotEmpty().WithMessage("Пароль не указан")
-            .MinimumLength(8).WithMessage("Минимальная длина пароля")
+            .MinimumLength(8).WithMessage("Минимальная длина пароля 8 символов")
             .Matches(@"[A-Z]").WithMessage("Пароль должен содержать хотя-бы одну заглавную букву")
             .Matches(@"[!@#$%^&*(),.?""{}|<>]").WithMessage("Пароль должен содержать спецсимвол");
     }
