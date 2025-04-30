@@ -1,8 +1,11 @@
 using Connectify.Db;
+using Connectify.Db.Model;
+using FluentValidation;
 using GachiHubBackend.Extensions;
 using GachiHubBackend.Hubs;
 using GachiHubBackend.Repositories;
 using GachiHubBackend.Services;
+using GachiHubBackend.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +32,8 @@ builder.Services.AddCors(opts =>
         policy.SetIsOriginAllowed(_ => true);
     });
 });
+
+builder.Services.AddScoped<IValidator<User>, UserValidation>();
 
 var db = new DbConnectifyContext(builder.Configuration);
 db.Database.EnsureDeleted();

@@ -1,4 +1,5 @@
 ﻿using Connectify.Db.Model;
+using FluentValidation;
 using GachiHubBackend.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,12 @@ public class UsersController : ControllerBase
 {
     private readonly UserRepository _userRepository;
     
-    public UsersController(UserRepository usersRepository)
+    private readonly IValidator<User> _userValidator;
+    
+    public UsersController(UserRepository usersRepository, IValidator<User> userValidator)
     {
         _userRepository = usersRepository;
+        _userValidator = userValidator;
     }
 
     [HttpGet(nameof(Register))]
@@ -28,12 +32,24 @@ public class UsersController : ControllerBase
             });
         }
 
-        await _userRepository.AddAsync(new User()
+        var newUser = new User()
         {
             Login = login,
             Password = password,
             CreatedAt = DateTime.Now
-        });
+        };
+        
+        var validationResult = await _userValidator.ValidateAsync(newUser);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(new
+            {
+                errors = validationResult.Errors.Select(x => x.ErrorMessage).ToList()
+            });
+        }
+        
+        
+        await _userRepository.AddAsync(newUser);
 
         return Ok(new
         {
