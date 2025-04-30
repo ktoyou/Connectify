@@ -76,10 +76,7 @@ public class RoomController : ControllerBase
         }
         
         await _roomRepository.AddAsync(newRoom);
-        await _roomHubContext.Clients.All.SendAsync(RoomHubEvent.CreatedRoom.ToString(), new
-        {
-            newRoom
-        });
+        await _roomHubContext.Clients.All.SendAsync(RoomHubEvent.CreatedRoom.ToString(), newRoom);
 
         return Ok(new
         {
