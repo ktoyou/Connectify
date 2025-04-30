@@ -34,6 +34,7 @@ builder.Services.AddCors(opts =>
 });
 
 builder.Services.AddScoped<IValidator<User>, UserValidation>();
+builder.Services.AddScoped<IValidator<Room>, RoomValidation>();
 
 var db = new DbConnectifyContext(builder.Configuration);
 db.Database.EnsureDeleted();

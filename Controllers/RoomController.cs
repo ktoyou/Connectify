@@ -1,4 +1,5 @@
 ﻿using Connectify.Db.Model;
+using FluentValidation;
 using GachiHubBackend.Hubs;
 using GachiHubBackend.Hubs.Enums;
 using GachiHubBackend.Repositories;
@@ -19,12 +20,14 @@ public class RoomController : ControllerBase
     
     private readonly IHubContext<RoomHub> _roomHubContext;
     
+    private readonly IValidator<Room> _roomValidator;
     
-    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IHubContext<RoomHub> roomHubContext)
+    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IHubContext<RoomHub> roomHubContext, IValidator<Room> roomValidator)
     {
         _roomRepository = roomRepository;
         _userRepository = userRepository;
         _roomHubContext = roomHubContext;
+        _roomValidator = roomValidator;
     }
 
     [HttpGet(nameof(GetRooms))]
@@ -56,15 +59,23 @@ public class RoomController : ControllerBase
         {
             return Unauthorized();
         }
-
+        
         var newRoom = new Room()
         {
             Title = title,
             Owner = user,
         };
         
+        var validationResult = await _roomValidator.ValidateAsync(newRoom);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(new
+            {
+                errors = validationResult.Errors.Select(x => x.ErrorMessage).ToList()
+            });
+        }
+        
         await _roomRepository.AddAsync(newRoom);
-
         await _roomHubContext.Clients.All.SendAsync(RoomHubEvent.CreatedRoom.ToString(), new
         {
             newRoom
