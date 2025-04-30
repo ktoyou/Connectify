@@ -100,13 +100,13 @@ public class RoomHub : Hub
         {
             throw new HubException("Room not found");
         }
-
-        var connectionIds = room.Users.Select(u => u.ConnectionId).ToList();
         
         await _roomRepository.AddUserToRoomAsync(room, currentUser!);
         
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), currentUser);
-        await Clients.AllExcept(connectionIds!).SendAsync(RoomHubEvent.JoinedToRoom.ToString(), currentUser, room);
+        var connectionIds = room.Users.Select(u => u.ConnectionId).ToList();
+        
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), currentUser, room);
+        await Clients.AllExcept(connectionIds!).SendAsync(RoomHubEvent.JoinedToOtherRoom.ToString(), room);
     }
 
     public async Task LeaveRoom()
