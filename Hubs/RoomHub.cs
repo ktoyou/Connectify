@@ -104,7 +104,7 @@ public class RoomHub : Hub
         var connectionIds = room.Users.Select(u => u.ConnectionId);
         
         await _roomRepository.AddUserToRoomAsync(room, currentUser!);
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), currentUser!.Login);
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), currentUser);
     }
 
     public async Task LeaveRoom()
