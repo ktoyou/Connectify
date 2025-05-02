@@ -34,7 +34,8 @@ public class RoomHub : Hub
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
         var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ReceiveOffer.ToString(), new
+        
+        await SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveOffer, new
         {
             offer,
             fromUserId = currentUser!.Id,
@@ -47,56 +48,31 @@ public class RoomHub : Hub
         var room = await _roomRepository.GetByIdAsync(currentUser!.Room!.Id);
         var targetUser = room!.Users.FirstOrDefault(u => u.Id == targetUserId);
 
-        if (targetUser!.ConnectionId != null)
+        await SendToClientAsync(targetUser!.ConnectionId!, RoomHubEvent.ReceiveAnswer, new
         {
-            await Clients.Clients(targetUser.ConnectionId)
-                .SendAsync(RoomHubEvent.ReceiveAnswer.ToString(), new
-                {
-                    answer,
-                    fromUserId = currentUser!.Id,
-                });    
-        }
+            answer,
+            fromUserId = currentUser.Id,
+        });
     }
 
     public async Task SendCandidate(object candidate)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
         var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!)
-            .SendAsync(RoomHubEvent.ReceiveCandidate.ToString(), new
-            {
-                candidate,
-                fromUserId = currentUser!.Id,
-            });
+        await SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveCandidate, new
+        {
+            candidate,
+            fromUserId = currentUser!.Id,
+        });
     }
 
-    public async Task StopScreenShare()
-    {
-        var user = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ScreenShareStopped.ToString(), user!.Id);
-    }
+    public async Task StopScreenShare() => await NotifyRoomUsersAsync(RoomHubEvent.ScreenShareStopped);
 
-    public async Task StopCameraShare()
-    {
-        var user = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.CameraShareStopped.ToString(), user!.Id);
-    }
+    public async Task StopCameraShare() => await NotifyRoomUsersAsync(RoomHubEvent.CameraShareStopped);
 
-    public async Task StartScreenShare()
-    {
-        var user = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ScreenShareStarted.ToString(), user!.Id);
-    }
+    public async Task StartScreenShare() => await NotifyRoomUsersAsync(RoomHubEvent.ScreenShareStarted);
 
-    public async Task StartCameraShare()
-    {
-        var user = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.CameraShareStarted.ToString(), user!.Id);
-    }
+    public async Task StartCameraShare() => await NotifyRoomUsersAsync(RoomHubEvent.CameraShareStarted);
     
     public async Task SendMessage(string content)
     {
@@ -110,9 +86,9 @@ public class RoomHub : Hub
             From = currentUser,
             SendAt = DateTime.Now,
         };
-
         await _messageRepository.AddAsync(message);
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ReceiveMessage.ToString(), new
+
+        await SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveMessage, new
         {
             From = currentUser.Login,
             message.Content,
@@ -172,7 +148,7 @@ public class RoomHub : Hub
         currentUser.Room = null;
         
         var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeftedRoom.ToString(), currentUser!.Login);
+        await SendToClientsAsync(connectionIds!, RoomHubEvent.LeftedRoom, currentUser.Login);
         
         await _userRepository.UpdateAsync(currentUser);
         await base.OnDisconnectedAsync(exception);
@@ -191,4 +167,20 @@ public class RoomHub : Hub
         
         await base.OnConnectedAsync();
     }
+
+    private async Task NotifyRoomUsersAsync(RoomHubEvent hubEvent)
+    {
+        var user = await _roomHubContextService.GetCurrentUserAsync();
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        if (user != null)
+        {
+            await Clients.Clients(connectionIds!).SendAsync(hubEvent.ToString(), user.Id);
+        }
+    }
+
+    private async Task SendToClientsAsync(IEnumerable<string> connectionIds, RoomHubEvent hubEvent, object payload)
+        => await Clients.Clients(connectionIds!).SendAsync(hubEvent.ToString(), payload);
+    
+    private async Task SendToClientAsync(string connectionId, RoomHubEvent hubEvent, object payload)
+        => await Clients.Client(connectionId).SendAsync(hubEvent.ToString(), payload);
 }
