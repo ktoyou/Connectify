@@ -109,7 +109,7 @@ public class RoomHub : Hub
         
         var connectionIds = room.Users.Select(u => u.ConnectionId).ToList();
 
-        await Clients.Clients(currentUser.ConnectionId).SendAsync(RoomHubEvent.InitiateOffer.ToString(), currentUser);
+        await Clients.Clients(currentUser!.ConnectionId!).SendAsync(RoomHubEvent.InitiateOffer.ToString(), currentUser);
         await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), currentUser, room);
         await Clients.AllExcept(connectionIds!).SendAsync(RoomHubEvent.JoinedToOtherRoom.ToString(), room);
     }
@@ -142,13 +142,12 @@ public class RoomHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeavedRoom.ToString(), currentUser, currentUser!.Room);
         
         currentUser!.ConnectionId = null;
         currentUser.RoomId = null;
         currentUser.Room = null;
-        
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await SendToClientsAsync(connectionIds!, RoomHubEvent.LeftedRoom, currentUser.Login);
         
         await _userRepository.UpdateAsync(currentUser);
         await base.OnDisconnectedAsync(exception);
