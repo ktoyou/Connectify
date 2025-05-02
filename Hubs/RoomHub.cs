@@ -70,6 +70,20 @@ public class RoomHub : Hub
             });
     }
 
+    public async Task StopScreenShare()
+    {
+        var user = await _roomHubContextService.GetCurrentUserAsync();
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ScreenShareStopped.ToString(), user!.Id);
+    }
+
+    public async Task StopCameraShare()
+    {
+        var user = await _roomHubContextService.GetCurrentUserAsync();
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.CameraShareStopped.ToString(), user!.Id);
+    }
+
     public async Task StartScreenShare()
     {
         var user = await _roomHubContextService.GetCurrentUserAsync();
