@@ -30,12 +30,11 @@ public class RoomHub : Hub
         _roomHubContextService = new RoomHubContextService(this, _userRepository);
     }
 
-    public async Task SendOffer(object offer, int targetUserId)
+    public async Task SendOffer(object offer)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
-        
-        await Clients.Clients(targetUser!.ConnectionId!).SendAsync(RoomHubEvent.ReceiveOffer.ToString(), new
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ReceiveOffer.ToString(), new
         {
             offer,
             fromUserId = currentUser!.Id,
@@ -45,22 +44,25 @@ public class RoomHub : Hub
     public async Task SendAnswer(object answer, int targetUserId)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
+        var room = await _roomRepository.GetByIdAsync(currentUser!.Room!.Id);
+        var targetUser = room!.Users.FirstOrDefault(u => u.Id == targetUserId);
 
-        await Clients.Clients(targetUser!.ConnectionId!)
-            .SendAsync(RoomHubEvent.ReceiveAnswer.ToString(), new
-            {
-                answer,
-                fromUserId = currentUser!.Id,
-            });
+        if (targetUser!.ConnectionId != null)
+        {
+            await Clients.Clients(targetUser.ConnectionId)
+                .SendAsync(RoomHubEvent.ReceiveAnswer.ToString(), new
+                {
+                    answer,
+                    fromUserId = currentUser!.Id,
+                });    
+        }
     }
 
     public async Task SendCandidate(object candidate, int targetUserId)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var targetUser = await _userRepository.GetByIdAsync(targetUserId);
-        
-        await Clients.Clients(targetUser!.ConnectionId!)
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!)
             .SendAsync(RoomHubEvent.ReceiveCandidate.ToString(), new
             {
                 candidate,
