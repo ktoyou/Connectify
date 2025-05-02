@@ -13,9 +13,9 @@ RUN dotnet restore "./Connectify.csproj"
 COPY . .
 RUN dotnet publish "Connectify.csproj" -c Release -o /app/publish
 
-# Финальный образ
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+
 
 ENTRYPOINT ["dotnet", "Connectify.dll"]

@@ -1,37 +1,16 @@
-services:
-  connectify-db:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "${MYSQL_PORT}:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+version: '3.8'
 
-  connectify-backend:
-    build: .
-    depends_on:
-      - connectify-db
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
-      - ConnectionStrings__DefaultConnection=Server=connectify-db;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
-      - Jwt__Audience=${JWT_AUDIENCE}
-      - Jwt__Issuer=${JWT_ISSUER}
-      - Jwt__Key=${JWT_KEY}
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/etc/vibecast/ssl/cert.pem
-      - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/etc/vibecast/ssl/key.pem
+services:
+  connectify:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
       - "5001:5001"
     volumes:
       - /etc/vibecast/ssl:/etc/vibecast/ssl:ro
-    command: >
-      dotnet Connectify.dll --urls "https://0.0.0.0:5001;http://0.0.0.0:5000"
-
-volumes:
-  db_data:
+    environment:
+      - ASPNETCORE_URLS=https://+:5001;http://+:5000
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/etc/vibecast/ssl/yourcert.pem
+      - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/etc/vibecast/ssl/yourkey.pem
