@@ -1,9 +1,9 @@
 ﻿using Connectify.Db.Model;
 using FluentValidation;
+using GachiHubBackend.Attributes;
 using GachiHubBackend.Hubs;
 using GachiHubBackend.Hubs.Enums;
 using GachiHubBackend.Repositories;
-using GachiHubBackend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -41,7 +41,27 @@ public class RoomController : ControllerBase
         });
     }
 
+    [AuthorizeRoomOwner]
+    public async Task<IActionResult> RemoveRoom(int roomId)
+    {
+        var room = await _roomRepository.GetByIdAsync(roomId);
+        if (room == null)
+        {
+            return NotFound(new
+            {
+                message = "Room not found"
+            });
+        }
+
+        await _roomRepository.DeleteAsync(room);
+        return Ok(new
+        {
+            message = "Room removed"
+        });
+    }
+
     [HttpPost(nameof(CreateRoom))]
+    [CurrentUser]
     public async Task<IActionResult> CreateRoom(string title)
     {
         var room = await _roomRepository.GetRoomByTitleAsync(title);
@@ -53,17 +73,11 @@ public class RoomController : ControllerBase
             });
         }
 
-        var login = HttpContext.User.Claims.ToList()[0].Value;
-        var user = await _userRepository.GetUserByLoginAsync(login);
-        if (user == null)
-        {
-            return Unauthorized();
-        }
-        
+        var user = HttpContext.Items["CurrentUser"] as User;
         var newRoom = new Room()
         {
             Title = title,
-            Owner = user,
+            Owner = user!,
         };
         
         var validationResult = await _roomValidator.ValidateAsync(newRoom);

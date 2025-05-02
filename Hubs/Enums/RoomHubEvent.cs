@@ -12,5 +12,7 @@ public enum RoomHubEvent
     CreatedRoom,
     JoinedToOtherRoom,
     LeavedFromOtherRoom,
-    InitiateOffer
+    InitiateOffer,
+    ScreenShareStarted,
+    CameraShareStarted
 }

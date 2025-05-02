@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using Connectify.Db.Model;
+using GachiHubBackend.Attributes;
 using GachiHubBackend.Repositories;
 using GachiHubBackend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,7 @@ public class AvatarController : ControllerBase
     }
 
     [HttpPost(nameof(SetAvatar))]
+    [CurrentUser]
     public async Task<IActionResult> SetAvatar(IFormFile? avatar)
     {
         if (avatar == null || avatar.Length == 0)
@@ -32,20 +35,9 @@ public class AvatarController : ControllerBase
         }
         
         var fileName = await _avatarService.UploadAvatarAsync(avatar);
-
-        var login = User.Claims.FirstOrDefault(u => u.Type == ClaimTypes.Name);
-        if (login == null)
-        {
-            return Unauthorized();
-        }
-
-        var user = await _userRepository.GetUserByLoginAsync(login.Value);
-        if (user == null)
-        {
-            return Unauthorized();
-        }
+        var user = HttpContext.Items["CurrentUser"] as User;
         
-        user.AvatarUrl = fileName;
+        user!.AvatarUrl = fileName;
         await _userRepository.UpdateAsync(user);
         
         return Ok(new

@@ -1,5 +1,6 @@
 ﻿using Connectify.Db.Model;
 using FluentValidation;
+using GachiHubBackend.Attributes;
 using GachiHubBackend.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -59,21 +60,13 @@ public class UsersController : ControllerBase
     
     [HttpGet(nameof(GetProfile))]
     [Authorize]
-    public async Task<IActionResult> GetProfile()
+    [CurrentUser]
+    public Task<IActionResult> GetProfile()
     {
-        if (User.Identity == null || User.Identity?.Name == null)
-        {
-            return BadRequest(new
-            {
-                message = "Identity claim is missing or name is required"
-            });
-        }
-        
-        var user = await _userRepository.GetUserByLoginAsync(User.Identity.Name);
-
-        return Ok(new
+        var user = HttpContext.Items["CurrentUser"] as User;
+        return Task.FromResult<IActionResult>(Ok(new
         {
             user
-        });
+        }));
     }
 }

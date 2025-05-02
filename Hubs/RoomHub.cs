@@ -67,6 +67,20 @@ public class RoomHub : Hub
                 fromUserId = currentUser!.Id,
             });
     }
+
+    public async Task StartScreenShare()
+    {
+        var user = await _roomHubContextService.GetCurrentUserAsync();
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.ScreenShareStarted.ToString(), user!.Id);
+    }
+
+    public async Task StartCameraShare()
+    {
+        var user = await _roomHubContextService.GetCurrentUserAsync();
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.CameraShareStarted.ToString(), user!.Id);
+    }
     
     public async Task SendMessage(string content)
     {
@@ -141,12 +155,8 @@ public class RoomHub : Hub
         currentUser.RoomId = null;
         currentUser.Room = null;
         
-        var room = await _roomRepository.GetRoomByOwnerIdAsync(currentUser!.Id);
-        if (room != null)
-        {
-            var connectionIds = room.Users.Select(u => u.ConnectionId);
-            await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeftedRoom.ToString(), currentUser!.Login);
-        }
+        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeftedRoom.ToString(), currentUser!.Login);
         
         await _userRepository.UpdateAsync(currentUser);
         await base.OnDisconnectedAsync(exception);
