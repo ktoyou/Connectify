@@ -12,5 +12,23 @@ services:
       - /etc/vibecast/ssl:/etc/vibecast/ssl:ro
     environment:
       - ASPNETCORE_URLS=https://+:5001;http://+:5000
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/etc/vibecast/ssl/yourcert.pem
-      - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/etc/vibecast/ssl/yourkey.pem
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/etc/vibecast/ssl/fullchain.pem
+      - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/etc/vibecast/ssl/privkey.pem
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=connectify;Uid=root;Pwd=;
+
+  mysql:
+    image: mysql:8.0
+    container_name: connectify-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: connectify
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_USER: connectifyuser
+      MYSQL_PASSWORD: connectifypass
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
