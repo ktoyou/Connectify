@@ -58,7 +58,7 @@ public class RoomHub : Hub
         }
     }
 
-    public async Task SendCandidate(object candidate, int targetUserId)
+    public async Task SendCandidate(object candidate)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
         var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
