@@ -142,14 +142,18 @@ public class RoomHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeavedRoom.ToString(), currentUser, currentUser!.Room);
+        if (currentUser!.Room != null)
+        {
+            var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
+            await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeavedRoom.ToString(), currentUser, currentUser!.Room);
         
-        currentUser!.ConnectionId = null;
-        currentUser.RoomId = null;
-        currentUser.Room = null;
+            currentUser!.ConnectionId = null;
+            currentUser.RoomId = null;
+            currentUser.Room = null;
         
-        await _userRepository.UpdateAsync(currentUser);
+            await _userRepository.UpdateAsync(currentUser);
+        }
+        
         await base.OnDisconnectedAsync(exception);
     }
 

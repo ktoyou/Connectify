@@ -4,7 +4,7 @@ public class AvatarService
 {
     public async Task<string> UploadAvatarAsync(IFormFile avatar)
     {
-        var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "avatars");
+        var uploadFolder = Path.Combine("/etc/vibecast/", "wwwroot", "avatars");
         Directory.CreateDirectory(uploadFolder);
 
         var fileName = Guid.NewGuid() + Path.GetExtension(avatar.FileName);

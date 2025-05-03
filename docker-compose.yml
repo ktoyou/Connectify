@@ -10,6 +10,7 @@ services:
       - "5001:5001"
     volumes:
       - /etc/vibecast/ssl:/etc/vibecast/ssl:ro
+      - /etc/vibecast/wwwroot/avatars/:/etc/vibecast/wwwroot/avatars/
     environment:
       - ASPNETCORE_URLS=https://+:5001;http://+:5000
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/etc/vibecast/ssl/fullchain.pem
@@ -22,7 +23,7 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: connectify
-      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ROOT_PASSWORD: "connectifypass"
       MYSQL_USER: connectifyuser
       MYSQL_PASSWORD: connectifypass
     ports:
