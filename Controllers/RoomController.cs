@@ -42,6 +42,7 @@ public class RoomController : ControllerBase
     }
 
     [AuthorizeRoomOwner]
+    [HttpPost(nameof(RemoveRoom))]
     public async Task<IActionResult> RemoveRoom(int roomId)
     {
         var room = await _roomRepository.GetByIdAsync(roomId);
