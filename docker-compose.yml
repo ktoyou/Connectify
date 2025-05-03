@@ -6,28 +6,30 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
-      - "5001:5001"
+      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "${HTTPS_PORT}:${HTTPS_PORT}"
     volumes:
       - /etc/vibecast/ssl:/etc/vibecast/ssl:ro
       - /etc/vibecast/wwwroot/avatars/:/etc/vibecast/wwwroot/avatars/
     environment:
-      - ASPNETCORE_URLS=https://+:5001;http://+:5000
+      - ASPNETCORE_URLS=https://+:${HTTPS_PORT};http://+:${HTTP_PORT}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/etc/vibecast/ssl/fullchain.pem
       - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/etc/vibecast/ssl/privkey.pem
-      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=connectify;Uid=root;Pwd=;
-
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=${MYSQL_PORT};Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Key=${JWT_KEY}
   mysql:
     image: mysql:8.0
     container_name: connectify-mysql
     restart: always
     environment:
-      MYSQL_DATABASE: connectify
-      MYSQL_ROOT_PASSWORD: "connectifypass"
-      MYSQL_USER: connectifyuser
-      MYSQL_PASSWORD: connectifypass
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3308:3306"
+      - "${MYSQL_PORT}:${MYSQL_PORT}"
     volumes:
       - mysql_data:/var/lib/mysql
 
