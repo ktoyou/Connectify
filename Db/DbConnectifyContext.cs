@@ -36,6 +36,14 @@ public class DbConnectifyContext : DbContext
             Password = "admin1",
             CreatedAt = new DateTime(2020, 1, 1),
         });
+        
+        modelBuilder.Entity<User>().HasData(new User
+        {
+            Id = 3,
+            Login = "admin2",
+            Password = "admin2",
+            CreatedAt = new DateTime(2020, 1, 1),
+        });
 
         modelBuilder.Entity<User>()
             .HasOne<Room>(r => r.Room)

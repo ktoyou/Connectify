@@ -30,12 +30,11 @@ public class RoomHub : Hub
         _roomHubContextService = new RoomHubContextService(this, _userRepository);
     }
 
-    public async Task SendOffer(object offer)
+    public async Task SendOffer(object offer, int toUserId)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        
-        await SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveOffer, new
+        var toUser = await _userRepository.GetByIdAsync(toUserId);
+        await SendToClientAsync(toUser!.ConnectionId!, RoomHubEvent.ReceiveOffer, new
         {
             offer,
             fromUserId = currentUser!.Id,
@@ -55,11 +54,12 @@ public class RoomHub : Hub
         });
     }
 
-    public async Task SendCandidate(object candidate)
+    public async Task SendCandidate(object candidate, int targetUserId)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var connectionIds = await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync();
-        await SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveCandidate, new
+        var toUser = await _userRepository.GetByIdAsync(targetUserId);
+        
+        await SendToClientAsync(toUser!.ConnectionId!, RoomHubEvent.ReceiveCandidate, new
         {
             candidate,
             fromUserId = currentUser!.Id,
@@ -107,10 +107,22 @@ public class RoomHub : Hub
         
         await _roomRepository.AddUserToRoomAsync(room, currentUser!);
         
-        var connectionIds = room.Users.Select(u => u.ConnectionId).ToList();
-
-        await Clients.Clients(currentUser!.ConnectionId!).SendAsync(RoomHubEvent.InitiateOffer.ToString(), currentUser);
-        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), currentUser, room);
+        var connectionIds = (await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync()).ToList();
+        
+        await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), new
+        {
+            currentUser = currentUser,
+            room = room,
+            createOffer = false
+        });
+        
+        await Clients.Caller.SendAsync(RoomHubEvent.JoinedRoom.ToString(), new
+        {
+            currentUser = currentUser,
+            room = room,
+            createOffer = true
+        });
+        
         await Clients.AllExcept(connectionIds!).SendAsync(RoomHubEvent.JoinedToOtherRoom.ToString(), room);
     }
 
