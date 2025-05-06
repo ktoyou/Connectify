@@ -90,7 +90,7 @@ public class RoomHub : Hub
 
         await SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveMessage, new
         {
-            From = currentUser.Login,
+            From = currentUser,
             message.Content,
             message.SendAt,
         });
