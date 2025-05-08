@@ -19,6 +19,7 @@ services:
       - Jwt__Audience=${JWT_AUDIENCE}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Key=${JWT_KEY}
+      - Janus__Domain=${JANUS_DOMAIN}
   mysql:
     image: mysql:8.0
     container_name: connectify-mysql
