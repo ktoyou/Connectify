@@ -4,6 +4,7 @@ using GachiHubBackend.Attributes;
 using GachiHubBackend.Hubs;
 using GachiHubBackend.Hubs.Enums;
 using GachiHubBackend.Repositories;
+using GachiHubBackend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -22,12 +23,15 @@ public class RoomController : ControllerBase
     
     private readonly IValidator<Room> _roomValidator;
     
-    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IHubContext<RoomHub> roomHubContext, IValidator<Room> roomValidator)
+    private readonly IJanusService _janusService;
+    
+    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IHubContext<RoomHub> roomHubContext, IValidator<Room> roomValidator, IJanusService janusService)
     {
         _roomRepository = roomRepository;
         _userRepository = userRepository;
         _roomHubContext = roomHubContext;
         _roomValidator = roomValidator;
+        _janusService = janusService;
     }
 
     [HttpGet(nameof(GetRooms))]
@@ -91,6 +95,10 @@ public class RoomController : ControllerBase
         }
         
         await _roomRepository.AddAsync(newRoom);
+        var session = await _janusService.CreateSessionAsync();
+        var plugin = await _janusService.AttachToPluginAsync(session, "janus.plugin.audiobridge");
+        await _janusService.CreateRoomAsync(session, plugin, newRoom.Id);
+        
         await _roomHubContext.Clients.All.SendAsync(RoomHubEvent.CreatedRoom.ToString(), newRoom);
 
         return Ok(new

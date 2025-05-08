@@ -5,6 +5,7 @@ using GachiHubBackend.Extensions;
 using GachiHubBackend.Hubs;
 using GachiHubBackend.Repositories;
 using GachiHubBackend.Services;
+using GachiHubBackend.Services.Interfaces;
 using GachiHubBackend.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
@@ -32,6 +33,8 @@ builder.Services.AddCors(opts =>
         policy.SetIsOriginAllowed(_ => true);
     });
 });
+
+builder.Services.AddHttpClient<IJanusService, JanusService>();
 
 builder.Services.AddScoped<IValidator<User>, UserValidation>();
 builder.Services.AddScoped<IValidator<Room>, RoomValidation>();
