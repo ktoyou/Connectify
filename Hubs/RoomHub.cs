@@ -30,42 +30,6 @@ public class RoomHub : Hub
         _roomHubContextService = new RoomHubContextService(this, _userRepository);
     }
 
-    public async Task SendOffer(object offer, int toUserId)
-    {
-        var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var toUser = await _userRepository.GetByIdAsync(toUserId);
-        await SendToClientAsync(toUser!.ConnectionId!, RoomHubEvent.ReceiveOffer, new
-        {
-            offer,
-            fromUserId = currentUser!.Id,
-        });
-    }
-
-    public async Task SendAnswer(object answer, int targetUserId)
-    {
-        var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var room = await _roomRepository.GetByIdAsync(currentUser!.Room!.Id);
-        var targetUser = room!.Users.FirstOrDefault(u => u.Id == targetUserId);
-
-        await SendToClientAsync(targetUser!.ConnectionId!, RoomHubEvent.ReceiveAnswer, new
-        {
-            answer,
-            fromUserId = currentUser.Id,
-        });
-    }
-
-    public async Task SendCandidate(object candidate, int targetUserId)
-    {
-        var currentUser = await _roomHubContextService.GetCurrentUserAsync();
-        var toUser = await _userRepository.GetByIdAsync(targetUserId);
-        
-        await SendToClientAsync(toUser!.ConnectionId!, RoomHubEvent.ReceiveCandidate, new
-        {
-            candidate,
-            fromUserId = currentUser!.Id,
-        });
-    }
-
     public async Task StopScreenShare() => await NotifyRoomUsersAsync(RoomHubEvent.ScreenShareStopped);
 
     public async Task StopCameraShare() => await NotifyRoomUsersAsync(RoomHubEvent.CameraShareStopped);
@@ -99,15 +63,21 @@ public class RoomHub : Hub
     public async Task JoinRoom(int id)
     {
         var currentUser = await _roomHubContextService.GetCurrentUserAsync();
+        
         var room = await _roomRepository.GetByIdAsync(id);
         if (room == null)
         {
             throw new HubException("Room not found");
         }
         
-        await _roomRepository.AddUserToRoomAsync(room, currentUser!);
-        
         var connectionIds = (await _roomHubContextService.GetOtherUsersConnectionIdsInRoomAsync()).ToList();
+        if (currentUser!.Room != null)
+        {
+            await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.LeavedRoom.ToString(), currentUser, room);
+            await Clients.AllExcept(connectionIds!).SendAsync(RoomHubEvent.LeavedFromOtherRoom.ToString(), room);
+        }
+        
+        await _roomRepository.AddUserToRoomAsync(room, currentUser!);
         
         await Clients.Clients(connectionIds!).SendAsync(RoomHubEvent.JoinedRoom.ToString(), new
         {
