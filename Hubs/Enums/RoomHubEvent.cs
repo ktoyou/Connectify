@@ -2,9 +2,6 @@
 
 public enum RoomHubEvent
 {
-    ReceiveOffer,
-    ReceiveAnswer,
-    ReceiveCandidate,
     ReceiveMessage,
     JoinedRoom,
     LeavedRoom,
@@ -14,5 +11,5 @@ public enum RoomHubEvent
     ScreenShareStarted,
     CameraShareStarted,
     ScreenShareStopped,
-    CameraShareStopped
+    CameraShareStopped,
 }
