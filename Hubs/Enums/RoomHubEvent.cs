@@ -8,8 +8,5 @@ public enum RoomHubEvent
     CreatedRoom,
     JoinedToOtherRoom,
     LeavedFromOtherRoom,
-    ScreenShareStarted,
-    CameraShareStarted,
-    ScreenShareStopped,
-    CameraShareStopped,
+    MethodNotFound,
 }

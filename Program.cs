@@ -52,6 +52,8 @@ builder.Services.AddScoped<IRoomHubConnectedHandler, UserConnectedHandler>();
 builder.Services.AddScoped<IRoomHubDisconnectedHandler, UserDisconnectedHandler>();
 builder.Services.AddRoomHubHandlers();
 
+builder.Services.AddScoped<IRoomHubHandlerService, RoomHubHandlerService>();
+
 var app = builder.Build();
 
 app.UseCors();

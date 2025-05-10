@@ -1,4 +1,6 @@
-﻿using GachiHubBackend.Hubs.Interfaces;
+﻿using GachiHubBackend.Hubs.Enums;
+using GachiHubBackend.Hubs.Interfaces;
+using GachiHubBackend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using SignalRSwaggerGen.Attributes;
@@ -9,45 +11,40 @@ namespace GachiHubBackend.Hubs;
 [SignalRHub]
 public class RoomHub : Hub
 {
-    private readonly IDictionary<string, IRoomHubHandler> _roomHubHandlers;
-    
     private readonly IRoomHubConnectedHandler _roomHubConnectedHandler;
     
     private readonly IRoomHubDisconnectedHandler _roomHubDisconnectedHandler;
+
+    private readonly IRoomHubHandlerService _handlerService;
     
-    public RoomHub(IEnumerable<IRoomHubHandler> handlers, IRoomHubConnectedHandler connectedHandler, IRoomHubDisconnectedHandler disconnectedHandler)
+    public RoomHub(IRoomHubHandlerService handlerService, IRoomHubConnectedHandler connectedHandler, IRoomHubDisconnectedHandler disconnectedHandler)
     {
+        _handlerService = handlerService;
         _roomHubConnectedHandler = connectedHandler;
         _roomHubDisconnectedHandler = disconnectedHandler;
-        _roomHubHandlers = handlers.ToDictionary(h => h.GetType().Name.Replace("Handler", ""), h => h);
     }
 
     public async Task Handle(string action, object payload)
     {
-        if (_roomHubHandlers.TryGetValue(action, out var handler))
+        var handler = _handlerService.GetHandler(action);
+        if (handler != null)
         {
-            var caller = new RoomHubCaller(Clients, Context, Groups);
-            await handler.HandleAsync(caller, payload);
+            await handler.HandleAsync(new RoomHubCaller(Clients, Context, Groups), payload);
+            return;
         }
-        else
-        {
-            throw new HubException($"{action} not found");
-        }
+        
+        await Clients.Caller.SendAsync(RoomHubEvent.MethodNotFound.ToString(), $"Method {action} not found");
     }
     
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var caller = new RoomHubCaller(Clients, Context, Groups);
-        await _roomHubDisconnectedHandler.HandleAsync(caller, exception);
-        
+        await _roomHubDisconnectedHandler.HandleAsync(new RoomHubCaller(Clients, Context, Groups), exception);
         await base.OnDisconnectedAsync(exception);
     }
 
     public override async Task OnConnectedAsync()
     {
-        var caller = new RoomHubCaller(Clients, Context, Groups);
-        await _roomHubConnectedHandler.HandleAsync(caller);
-        
+        await _roomHubConnectedHandler.HandleAsync(new RoomHubCaller(Clients, Context, Groups));
         await base.OnConnectedAsync();
     }
 }

@@ -3,7 +3,6 @@ using GachiHubBackend.Hubs.Enums;
 using GachiHubBackend.Hubs.Interfaces;
 using GachiHubBackend.Repositories.Interfaces;
 using GachiHubBackend.Services.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace GachiHubBackend.Hubs.Handlers;
 
