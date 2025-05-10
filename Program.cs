@@ -3,6 +3,8 @@ using Connectify.Db.Model;
 using FluentValidation;
 using GachiHubBackend.Extensions;
 using GachiHubBackend.Hubs;
+using GachiHubBackend.Hubs.Handlers;
+using GachiHubBackend.Hubs.Interfaces;
 using GachiHubBackend.Repositories;
 using GachiHubBackend.Services;
 using GachiHubBackend.Services.Interfaces;
@@ -35,22 +37,20 @@ builder.Services.AddCors(opts =>
 });
 
 builder.Services.AddHttpClient<IJanusService, JanusService>();
-
 builder.Services.AddScoped<IValidator<User>, UserValidation>();
 builder.Services.AddScoped<IValidator<Room>, RoomValidation>();
-
-var db = new DbConnectifyContext(builder.Configuration);
-db.Database.EnsureDeleted();
-db.Database.EnsureCreated();
-
 builder.Services.AddSingleton<AvatarService>();
-
 builder.Services.AddDbContext<DbConnectifyContext>();
-builder.Services.AddRepositories();
 
+builder.Services.AddRepositories();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<RoomRepository>();
 builder.Services.AddScoped<MessagesRepository>();
+
+builder.Services.AddScoped<IRoomHubContextService, RoomHubContextService>();
+builder.Services.AddScoped<IRoomHubConnectedHandler, UserConnectedHandler>();
+builder.Services.AddScoped<IRoomHubDisconnectedHandler, UserDisconnectedHandler>();
+builder.Services.AddRoomHubHandlers();
 
 var app = builder.Build();
 

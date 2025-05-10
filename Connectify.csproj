@@ -14,6 +14,7 @@
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.15" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.15" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+        <PackageReference Include="Scrutor" Version="6.0.1" />
         <PackageReference Include="SignalRSwaggerGen" Version="4.8.0" />
         <PackageReference Include="SignalRSwaggerGen.Core" Version="1.5.0" />
         <PackageReference Include="SignalRSwaggerGen.Utils" Version="1.7.0" />

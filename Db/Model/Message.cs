@@ -13,5 +13,5 @@ public class Message : BaseModel
     [JsonIgnore]
     public virtual Room Room { get; set; } = new Room();
 
-    public string Content { get; set; } = string.Empty;
+    public string? Content { get; set; } = string.Empty;
 }
