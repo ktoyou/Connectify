@@ -17,18 +17,15 @@ public class RoomController : ControllerBase
 {
     private readonly RoomRepository _roomRepository;
     
-    private readonly UserRepository _userRepository;
-    
     private readonly IHubContext<RoomHub> _roomHubContext;
     
     private readonly IValidator<Room> _roomValidator;
     
     private readonly IJanusService _janusService;
     
-    public RoomController(RoomRepository roomRepository, UserRepository userRepository, IHubContext<RoomHub> roomHubContext, IValidator<Room> roomValidator, IJanusService janusService)
+    public RoomController(RoomRepository roomRepository, IHubContext<RoomHub> roomHubContext, IValidator<Room> roomValidator, IJanusService janusService)
     {
         _roomRepository = roomRepository;
-        _userRepository = userRepository;
         _roomHubContext = roomHubContext;
         _roomValidator = roomValidator;
         _janusService = janusService;

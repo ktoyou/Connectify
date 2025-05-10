@@ -32,11 +32,6 @@ public class SendMessageHandler : IRoomHubHandler
         };
         await _messageRepository.AddAsync(message);
 
-        await _roomHubContextService.SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveMessage, caller, new
-        {
-            From = currentUser,
-            message.Content,
-            message.SendAt,
-        });
+        await _roomHubContextService.SendToClientsAsync(connectionIds!, RoomHubEvent.ReceiveMessage, caller, message);
     }
 }
